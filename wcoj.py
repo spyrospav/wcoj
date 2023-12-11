@@ -85,7 +85,11 @@ class HashTrieWCOJ(WCOJ):
         hash_tries = {}
         # Build hash tries for each relation
         for r in self.R:
-            hash_tries[r.get_name()] = self._build(r.get_attributes(), 1, r.get_tuples())
+            hash_tries[r.get_name()] = self._build(
+                r.get_attributes(),
+                1, 
+                r.get_tuples()
+            )
             
         return hash_tries
 
@@ -93,14 +97,14 @@ class HashTrieWCOJ(WCOJ):
 
         if i <= len(E):
             
+            sizeL = len(L)
             v = E[i-1]
             M = {}
 
             # Build outer hash table
             while L != []:
                 t = L.pop()
-                print(t[v])
-                hash = mmh3.hash(str(t[v]), False)
+                hash = mmh3.hash(str(t[v]), False) % sizeL
                 if hash not in M:
                     M[hash] = [t]
                 else:
@@ -116,3 +120,8 @@ class HashTrieWCOJ(WCOJ):
         else:
             return L
 
+    def enumerate(self):
+        return self._enumerate(0)
+    
+    def _enumerate(self, i : int):
+        pass

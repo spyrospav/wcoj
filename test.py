@@ -1,7 +1,8 @@
 from wcoj import GeneralWCOJ, HashTrieWCOJ
 from db import Relation
+import utils
 
-# The relations R1, R2, R3 should be defined based on the specific database schema and query
+# Relations R1, R2, R3
 R1 = Relation('R1', ['v1', 'v2'], [])
 R2 = Relation('R2', ['v2', 'v3'], [])
 R3 = Relation('R3', ['v1', 'v3'], [])
@@ -18,4 +19,5 @@ wcoj.enumerate(1, [R1, R2, R3])
 
 wcojHash = HashTrieWCOJ([R1, R2, R3])
 
-print(wcojHash.build())
+
+utils.pprint(wcojHash.build()[R1.get_name()])
