@@ -1,5 +1,7 @@
 from db import Relation
 import mmh3
+import math
+from utils import *
 
 class WCOJ:
 
@@ -19,7 +21,7 @@ class WCOJ:
         # Open output file
         self.fileout = open(fileout, 'w')
 
-class GeneralWCOJ(WCOJ):
+class NaiveWCOJ(WCOJ):
 
     def enumerate(self, i : int, R : list[Relation]):
 
@@ -80,24 +82,28 @@ class GeneralWCOJ(WCOJ):
 
 class HashTrieWCOJ(WCOJ):
 
+    def __init__(self, *args, **kwargs):
+
+        self.hash_tries = {}
+        super().__init__(*args, **kwargs)
+
     def build(self):
 
-        hash_tries = {}
         # Build hash tries for each relation
         for r in self.R:
-            hash_tries[r.get_name()] = self._build(
+            self.hash_tries[r.get_name()] = self._build(
                 r.get_attributes(),
                 1, 
                 r.get_tuples()
             )
             
-        return hash_tries
+        return self.hash_tries
 
     def _build(self, E, i, L):
 
         if i <= len(E):
             
-            sizeL = len(L)
+            sizeL = math.ceil(1.25*len(L))
             v = E[i-1]
             M = {}
 
@@ -121,7 +127,29 @@ class HashTrieWCOJ(WCOJ):
             return L
 
     def enumerate(self):
-        return self._enumerate(0)
+        return self._enumerate(1)
     
     def _enumerate(self, i : int):
-        return
+
+        if i <= len(self.V):
+            v = self.V[i-1]
+            
+            # Select participating iterators
+            I_join = [self.hash_tries[Rj.get_name()] for Rj in self.R if v in self.E[Rj.get_name()]]
+            I_other = [self.hash_tries[Rj.get_name()] for Rj in self.R if v not in self.E[Rj.get_name()]]
+            
+            # Select smallest hash table
+            I_scan = argmin_length(I_join)
+
+            while I_scan != []:
+                # Find hash in remaining hash tables
+
+                # Move to the next trie level
+
+                # Recursively enumerate matching tuples
+                self._enumerate(i + 1)
+
+                # Move back to the current trie level
+        else:
+            # All iterators point to tuple chains
+            return
