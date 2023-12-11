@@ -124,4 +124,4 @@ class HashTrieWCOJ(WCOJ):
         return self._enumerate(0)
     
     def _enumerate(self, i : int):
-        pass
+        return
