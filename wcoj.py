@@ -1,4 +1,5 @@
 from db import Relation
+import mmh3
 
 class WCOJ:
 
@@ -17,7 +18,9 @@ class WCOJ:
 
         # Open output file
         self.fileout = open(fileout, 'w')
-    
+
+class GeneralWCOJ(WCOJ):
+
     def enumerate(self, i : int, R : list[Relation]):
 
         if i <= len(self.V):
@@ -74,3 +77,42 @@ class WCOJ:
 
         # Write result to output file
         self.fileout.write(str(ret) + '\n')
+
+class HashTrieWCOJ(WCOJ):
+
+    def build(self):
+
+        hash_tries = {}
+        # Build hash tries for each relation
+        for r in self.R:
+            hash_tries[r.get_name()] = self._build(r.get_attributes(), 1, r.get_tuples())
+            
+        return hash_tries
+
+    def _build(self, E, i, L):
+
+        if i <= len(E):
+            
+            v = E[i-1]
+            M = {}
+
+            # Build outer hash table
+            while L != []:
+                t = L.pop()
+                print(t[v])
+                hash = mmh3.hash(str(t[v]), False)
+                if hash not in M:
+                    M[hash] = [t]
+                else:
+                    M[hash].append(t)
+                    
+            # Build nested hash tables
+            for k, v in M.items():
+                L_next = v
+                M_next = self._build(E, i + 1, L_next)
+                M[k] = M_next
+
+            return M
+        else:
+            return L
+
