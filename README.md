@@ -6,7 +6,7 @@ This project is an implementation of the Hash-Trie Worst Case Optimal Join (WCOJ
 
 ## Structure
 
-In order to avoid writing a full SQL parser + Database, we opted to write a imple `db.py` file that contains a `Relation` class to simulate a simple relational table.
+In order to avoid writing a full SQL parser + Database, we opted to write a simple `db.py` file that contains a `Relation` class to simulate a simple relational table.
 
 We define some helping classes in `utils.py`. More specifically, we implement a `HashTrie` structure supporting all the operations for the trie iterators described in the original paper. 
 
@@ -14,8 +14,10 @@ The join algorithms are implemented in `wcoj.py`. We have a generic `WCOJ` class
 
 Finally, we have a `test.py` file to act as a unit tester for these joins.
 
-## Challenges
+## Challenges + Testing
 
 The original paper describes various optimizations like *singleton pruning* and *lazy child expansion*, which would require careful and challenging implementations. Therefore, they are not implemented.
+
+The two algorithms are tested against the examples found in the paper and my example in the long summary and the results match.
 
 I was not able to run large experiments to showcase the difference between the two algorithms. The implementation of the evaluation would consist of "compiling" some graph queries from the original paper to the relational table format implemented in `dp.py` and then run the different algorithms and measure time (e.g. with `timeit`).
