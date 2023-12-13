@@ -17,9 +17,8 @@ class WCOJ:
             self.E[r.get_name()] = a
 
         self.V = sorted(list(set(self.V)))
-
-        # Open output file
-        self.fileout = open(fileout, 'w')
+        
+        self.fileout = fileout
 
 class NaiveWCOJ(WCOJ):
 
@@ -77,54 +76,60 @@ class NaiveWCOJ(WCOJ):
                     if k not in ret:
                         ret[k] = v
 
+        # Open output file
+        fileout = open(self.fileout, 'a')
         # Write result to output file
-        self.fileout.write(str(ret) + '\n')
+        fileout.write(str(ret) + '\n')
+        # Close output file
+        fileout.close()
 
 class HashTrieWCOJ(WCOJ):
 
     def __init__(self, *args, **kwargs):
 
-        self.hash_tries = {}
+        self.hash_tries = []
         super().__init__(*args, **kwargs)
 
     def build(self):
 
         # Build hash tries for each relation
         for r in self.R:
-            self.hash_tries[r.get_name()] = self._build(
-                r.get_attributes(),
-                1, 
-                r.get_tuples()
+            mod = math.ceil(1.25*len(r.get_tuples()))
+            node = self._build(r, 1, r.get_tuples(), mod)
+            self.hash_tries.append(
+                HashTrie(
+                    r.get_name(), 
+                    r.get_attributes(),
+                    mod, 
+                    node
+                )
             )
             
         return self.hash_tries
 
-    def _build(self, E, i, L):
+    def _build(self, R, i, L, mod):
 
+        E = R.get_attributes()
         if i <= len(E):
             
-            sizeL = math.ceil(1.25*len(L))
             v = E[i-1]
-            M = {}
-
+            M = HashTrieNode()
+            
             # Build outer hash table
             while L != []:
                 t = L.pop()
-                hash = mmh3.hash(str(t[v]), False) % sizeL
-                if hash not in M:
-                    M[hash] = [t]
-                else:
-                    M[hash].append(t)
+                hash = mmh3.hash(str(t[v]), False) % mod
+                M.push(hash, t)
                     
             # Build nested hash tables
-            for k, v in M.items():
-                L_next = v
-                M_next = self._build(E, i + 1, L_next)
-                M[k] = M_next
-
+            for key, val in M.buckets.items():
+                L_next = val.list
+                M_next= self._build(R, i + 1, L_next, mod)
+                M.buckets[key].next = M_next
+                M_next.set_parent(M)
             return M
         else:
-            return L
+            return Leaf(L)
 
     def enumerate(self):
         return self._enumerate(1)
@@ -135,21 +140,64 @@ class HashTrieWCOJ(WCOJ):
             v = self.V[i-1]
             
             # Select participating iterators
-            I_join = [self.hash_tries[Rj.get_name()] for Rj in self.R if v in self.E[Rj.get_name()]]
-            I_other = [self.hash_tries[Rj.get_name()] for Rj in self.R if v not in self.E[Rj.get_name()]]
+            I_join = [I for I in self.hash_tries if v in I.attributes]
             
             # Select smallest hash table
-            I_scan = argmin_length(I_join)
+            I_scan = I_join[0]
 
-            while I_scan != []:
+            for t in I_scan.iterator.buckets:
                 # Find hash in remaining hash tables
+                skip = False
+                for I in I_join:
+                    if I.iterator != I_scan.iterator:
+                        if not I.lookup(t):
+                            skip = True
+                            break
+                if skip:
+                    continue
 
                 # Move to the next trie level
+                for I in I_join:
+                    I.move(t)
 
                 # Recursively enumerate matching tuples
                 self._enumerate(i + 1)
 
                 # Move back to the current trie level
+                for I in I_join:
+                    I.up()
         else:
             # All iterators point to tuple chains
-            return
+            tuple = {}
+            check = {}
+            save = True
+            print("sadas")
+            for I in self.hash_tries:
+                print(I.iterator.list)
+                for t in I.iterator.list:
+                    print(t)
+                    for k, v in t.items():
+                        print(k)
+                        if v not in check:
+                            check[v] = 1
+                            tuple[k] = v
+                        else:
+                            if check[v] == 2:
+                                save = False
+                                break
+                            else:
+                                check[v] = check[v] + 1
+                        if not save:
+                            break
+                    if not save:
+                        break
+                if not save:
+                    break
+
+            if save:
+                # Open output file
+                fileout = open(self.fileout, 'a')
+                # Write result to output file
+                fileout.write(str(tuple) + '\n')
+                # Close output file
+                fileout.close()
